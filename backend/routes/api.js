@@ -148,9 +148,9 @@ router.get("/rooms/:roomName/users", async (req, res) =>
 router.get("/rooms/:roomName/messages", async (req, res) => {
     const room_name = req.params.roomName;
 
-    const room = await Room.findOne({ name: room_name });
+    // const room = await Room.findOne({ name: room_name });
 
-    const messages = await Chat.find({ room: room._id });
+    const messages = await Chat.find({ roomName: room_name });
 
     res.send({ messages });
 });
@@ -185,17 +185,16 @@ router.post("/room/:roomName/addMsg", async (req, res) => {
   const { roomName } = req.params;
 
   // find the room in the database
-  const room = await Room.findOne({ name: roomName });
+  // const room = await Room.findOne({ name: roomName });
   
   // Find the user in the database
   const user = await User.findOne({ name: sender });
 
   const newChat = new Chat({
     message: message,
-    sender: user._id,
     senderName: sender,
-    receiver: null,
-    room: room._id,
+    receiverName: null,
+    roomName: roomName,
     createdAt: createdAt
   });
 

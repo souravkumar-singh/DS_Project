@@ -69,7 +69,6 @@ const DM = () => {
       fetchMessages();
 
        // Listen for new direct messages
-      
       socket.on("new direct message", async (message) => {
       console.log("ab");
       if (message.senderName === user.name && message.receiverName === selectedUser) {
