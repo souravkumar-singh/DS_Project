@@ -4,110 +4,148 @@ import { format } from "date-fns";
 import { UserContext } from '../contexts/UserContext';
 import { useNavigate } from "react-router-dom";
 
-
-import socketIOClient from "socket.io-client";
+import socketIOClient, { Socket } from "socket.io-client";
 const ENDPOINT = "http://localhost:8080";
 const frontPort = 8080;
 
-var socket = socketIOClient(ENDPOINT,{
-  transports: [ "websocket", 'polling' ]
+var socket = socketIOClient(ENDPOINT, {
+  transports: ["websocket", 'polling']
 })
 
 const DM = () => {
   const [users, setUsers] = useState([]);
-  const [messages, setMessages] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const { user, setUser } = useContext(UserContext);
-  
+
+  const [messages, setMessages] = useState([]);
+  const [latestMessage, setLatestMessage] = useState(null);
   const [newMessage, setNewMessage] = useState("");
-  const messageRef = useRef(null);
+  // const { current_username } = useParams();
+  const messageContainerRef = useRef(null);
 
   const storedUsername = JSON.parse(localStorage.getItem("user"));
-  const connectedClients = {}; 
-
-  useEffect(() => {
-    // Listen for client's login event
-    socket.on("login", (user) => {
-      // Store the socket id of the connected client
-      connectedClients[user.name] = socket.id;
-  
-      console.log("User", user.name, "logged in with socket id", socket.id);
-    });
-  
-    // Listen for client's disconnection event
-    socket.on("disconnect", () => {
-      console.log("Client disconnected with socket id:", socket.id);
-  
-      // Remove the disconnected client's socket id from the connectedClients object
-      const user = Object.keys(connectedClients).find((key) => connectedClients[key] === socket.id);
-      delete connectedClients[user];
-    });
-  },[]);
+  const current_username = storedUsername.name;
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch users from MongoDB
     const fetchUsers = async () => {
-        const response = await fetch(`http://localhost:${frontPort}/api/users`);
-        const data = await response.json();
-        console.log(data)
-        setUsers(data);
+      const response = await fetch(`http://localhost:${frontPort}/api/users`);
+      const data = await response.json();
+      console.log(data)
+      setUsers(data);
     };
     fetchUsers();
-  },[]);
+
+    socket.emit("join_dm", current_username);
+    
+    socket.on("message", msg => {
+      const data = JSON.parse(msg);
+
+      const selectedUser_storage = JSON.parse(localStorage.getItem("selectedUser"));
+
+      if ( data.senderName == current_username){
+        setLatestMessage(data);
+      }
+
+      else if ((data.senderName == selectedUser_storage)  && (data.receiverName == current_username))
+      {
+        setLatestMessage(data);
+        console.log("else if "); 
+        console.log("Selected",selectedUser_storage);
+        console.log("actuall", current_username);
+        console.log("receiverNAme",data.receiverName);
+        console.log("senderName", data.senderName);
+      }
+
+      else
+      {
+        console.log("else");
+        console.log("Selected",selectedUser_storage);
+        console.log("actuall", current_username);
+        console.log("receiverNAme",data.receiverName);
+        console.log("senderName", data.senderName);
+      }
+    });
+
+    socket.on("logged-users", (msg) => {
+      console.log("list",msg);
+      
+      let data = JSON.parse(msg)
+      
+      const uniquedata = data.filter((elem, pos) => {
+        return data.indexOf(elem) == pos;})
+
+      setUsers(uniquedata);
+    });
+
+    // Listen for new direct messages
+  
+    return () => {
+      socket.off('message')
+      socket.off('logged-users')
+      //ocket.off('roomusers')
+
+      // Emit "leave room" event when component unmounts
+      socket.emit("leave_DM", storedUsername.name);
+    };
+
+  }, []);
+
 
   useEffect(() => {
     if (selectedUser) {
       // Fetch direct messages between current user and selected user
       const fetchMessages = async () => {
         const storedUsername = JSON.parse(localStorage.getItem("user"));
-        const sender=storedUsername.name
-        
+        const sender = storedUsername.name
+
         console.log("Selected User:", selectedUser);
         console.log("Current User:", sender);
 
         const response = await fetch(`http://localhost:${frontPort}/api/messages/${sender}/${selectedUser}`);
         const data = await response.json();
-        console.log("Messages:", data);
+
+        console.log("Messages:", data.messages);
         setMessages(data.messages);
       };
       fetchMessages();
-
-       // Listen for new direct messages
-      socket.on("new direct message", async (message) => {
-      console.log("ab");
-      if (message.senderName === user.name && message.receiverName === selectedUser) {
-        // Add the message to the MongoDB database
-        console.log("Message is for selected user");
-        
-        const response = await fetch(`http://localhost:${frontPort}/api/Msgdm`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            message: message.message,
-            senderName: message.senderName,
-            receiverName: message.receiverName,
-      createdAt: message.createdAt
-          }),
-        });
-        const data = await response.json();
-        console.log("Added new message to MongoDB:", data);
-        console.log(data);
-
-        // Update the messages state with the new message
-        setMessages((prevMessages) => [...prevMessages, data.message]);
-
-        // Scroll to the bottom of the message list
-        messageRef.current.scrollTop = messageRef.current.scrollHeight;
-      }
-    });
     }
   }, [selectedUser]);
 
+  useEffect(() => {
+    if (latestMessage) {
+      console.log("Latest Message is", latestMessage);
+      setMessages([...messages, latestMessage]);
+    }
+    else {
+      console.log("Latest Message is NULL");
+    }
+  }, [latestMessage]);
+
+
+  useEffect(() => {
+    // Scroll to the bottom when new messages are added
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleExit = () => {
+    // const currentUserName = JSON.parse(localStorage.getItem("user")).name;
+    // socket.emit("leave room", roomName, currentUserName);
+    localStorage.removeItem("selectedUser");
+
+    // Redirect to dashboard
+    navigate("/dashboard");
+  };
+
   const handleUserClick = (selectedUser) => {
     setSelectedUser(selectedUser);
+    localStorage.setItem("selectedUser", JSON.stringify(selectedUser));
+    console.log("User Click Selected User: ", selectedUser);
   };
+
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -118,48 +156,72 @@ const DM = () => {
       message: newMessage,
       senderName: user.name,
       receiverName: selectedUser,
+      roomName: null,
+      unicast: true,
       createdAt: new Date().toISOString()
     };
 
-    console.log("client:",connectedClients[selectedUser]);
-    socket.emit("new direct message", message);
-    console.log("Sent new message:", message);
+    socket.emit("message", JSON.stringify(message));
+
+    console.log("Selected User:", selectedUser);
+
     setNewMessage("");
   };
 
-  return (
-    <div>
-      <h1>Direct Messages</h1>
-      <h2>Users:</h2>
-      <ul>
-        {users.map((user) => (
-          <li key={user} onClick={() => handleUserClick(user)}>{user}</li>
-        ))}
-      </ul> 
 
-      {selectedUser && (
-        <div>
-          <h2>Chat with {selectedUser}:</h2>
-          <div className="message-list" ref={messageRef}>
-            {messages && messages.map((message, index) => (
-              <div className="message" key={index}>
-                <p className="message-text">Message: {message.message}</p>
-                <p className="message-details">
-                  <span> Sender: {message.senderName} </span>
-              <span> Receiver: {message.receiverName} </span>
-              <span> Created At: {format(new Date(message.createdAt), "dd/MM/yyyy HH:mm:ss")} </span>
-            </p>
-          </div>
-        ))}
+  return (
+    <div className="chat-box">
+
+      <div className="chat-header">
+        <h1> Direct Messages </h1>
+        <button onClick={handleExit} className="exit-button"> Back </button>
       </div>
-      <form onSubmit={handleSubmit}>
-        <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} />
-        <button type="submit">Send</button>
-      </form>
+
+      <div className="chat-body">
+        <h2>Users:</h2>
+        
+        <ul>
+          {users.map((user) => (
+            // Only render the <li> element if the user is not the current user
+            current_username !== user && (
+              <li key={user} onClick={() => handleUserClick(user)}>{user}</li>
+            )
+          ))}
+        </ul>
+
+        {selectedUser && (
+          <div>
+            <h2> Chat with {selectedUser} </h2>
+
+            <div className="message-list" ref={messageContainerRef}>
+              {messages && messages.map((message, index) => (
+                <div className="message" key={index}>
+                  <p className="message-text">
+                    <span className="sender-name">{message.senderName}: </span>
+                    {message.message}
+                  </p>
+                  <p className="message-details">
+                    {new Date(message.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} className="chat-input">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(event) => setNewMessage(event.target.value)}
+                placeholder="Type your message here"
+              />
+              <button type="submit"> Send </button>
+            </form>
+
+          </div>
+        )}
+      </div>
     </div>
-  )}
-</div>
-);
+  );
 };
 
 export default DM;

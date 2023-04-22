@@ -34,7 +34,7 @@ $ docker-compose down
 
 ```
 
-### Running frontend application
+### Running frontend
 The main App.js file contains all the business logic for websocket establishment and respective API calls. First, run the backend services and then proceed to start the frontend server.
 ```shell
 # for dev server run
@@ -47,5 +47,4 @@ $ npm start
 
 ## Architecture
 
-![image](https://user-images.githubusercontent.com/41498427/115279105-e6be5680-a163-11eb-9c29-cc7e4738eab0.png)
-
+![Screenshot](diagram/architecture.png)

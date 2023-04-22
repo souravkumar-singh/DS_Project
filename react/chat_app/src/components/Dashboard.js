@@ -70,7 +70,10 @@ function Dashboard() {
   };
 
   const [name, setRoomName] = useState('');
-
+  const handleDM = async (event) => {
+    const currentUserName = JSON.parse(localStorage.getItem("user")).name;
+    navigate(`/dm/${currentUserName}`)
+  }
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -120,6 +123,7 @@ function Dashboard() {
           <button type="submit">Join room</button>
         </form>
         <br/>
+        <form onSubmit={handleDM}> <button type="submit">Join DM</button> </form>
         <button id="logout-button" onClick={handleLogout} style={{ backgroundColor: "red", color: "white", display: "block", margin: "auto" }}>Logout</button>
       </div>
       <div id="logged-in-users">

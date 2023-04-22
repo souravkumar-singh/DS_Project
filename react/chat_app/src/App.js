@@ -24,7 +24,7 @@ function App() {
 
         <Route exact path="/room/:roomName" element={<Room />} />
 
-        <Route exact path="/dm" element={<DM/>} />
+        <Route exact path="/dm/:username" element={<DM/>} />
       </Routes>
       </UserProvider>
     </Router>

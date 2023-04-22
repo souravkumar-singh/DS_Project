@@ -201,29 +201,8 @@ router.get("/messages/:sender/:receiver", async (req, res) => {
       { senderName: receiver, receiverName: sender },
     ],
   }).exec();
-  res.json({ messages });
-});
 
-//save Msg between 2 users
-router.post("/Msgdm", async (req, res) => {
-  try {
-    const { message, senderName, receiverName, createdAt } = req.body;
-    const newMessage = new Chat({
-      message:message,
-      sender:user._id,
-      senderName:senderName,
-      receiver:null,
-      receiverName,receiverName,
-      room:null,
-      createdAt:createdAt,
-    });
-    await newMessage.save();
-    res.status(201).json({ success: true, message: newMessage });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
+  res.status(200).json({ messages });
 });
-
 
 module.exports = router;

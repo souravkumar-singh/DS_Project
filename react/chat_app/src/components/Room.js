@@ -18,10 +18,9 @@ const Room = () => {
 
   const [messages, setMessages] = useState([]);
   const [latestMessage, setLatestMessage] = useState(null);
-
   const [newMessage, setNewMessage] = useState("");
-  const messageContainerRef = useRef(null);
 
+  const messageContainerRef = useRef(null);
 
   const { roomName } = useParams();
   const { user, setUser } = useContext(UserContext);
@@ -162,6 +161,7 @@ const Room = () => {
           />
           <button type="submit"> Send </button>
         </form>
+
       </div>
     </div>
   );
