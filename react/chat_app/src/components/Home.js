@@ -2,6 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../style.css';
 
+import socketIOClient from "socket.io-client";
+const ENDPOINT = "http://localhost:8080";
+const frontPort = 8080;
+
+var socket = socketIOClient(ENDPOINT,{
+  transports: [ "websocket", 'polling' ]
+})
+
 function Home() {
   return (
     <div className="home-container">

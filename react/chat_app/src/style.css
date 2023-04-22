@@ -352,7 +352,8 @@ ul {
   .message-list {
     flex-grow: 1;
     overflow-y: scroll;
-    margin-bottom: 20px;
+    margin-bottom: 60px;
+    height: 600px; 
   }
   /* .message {
     margin-bottom: 10px;

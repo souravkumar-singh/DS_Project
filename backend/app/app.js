@@ -16,6 +16,7 @@ const httpServer = http.createServer(app);
 const io = socketio(httpServer, {
   cors: {
     origin: '*',
+    transports: ['websocket', 'polling']
   }
 })
 
@@ -139,6 +140,7 @@ io.on("connection", (socket) => {
     })
     
     publisher.lpush([`${room}_meta`, user],(err, r) =>{})
+    
     publisher.publish('bchat-users', room)
 
     // Fetch the list of users currently in the room from Redis
@@ -196,14 +198,18 @@ io.on("connection", (socket) => {
 
   socket.on('logout', (user) => {
     console.log(`${user} has logged out`);
-    const socketId = userToSocket.get(user);
 
-    if (socketId) {
-      userToSocket.delete(user);
-      publisher.onlineUsers.del(user);
-      publisher.publish("logged-users","1");
-      // io.to(socketId).emit('logout', { user });
-    }
+    publisher.lrange('onlineUsers',0,-1, (err, reply)=>{
+      console.log("OnlineUsers List:", reply);
+    })
+
+    publisher.lrem(['onlineUsers', 0, user], (err, r) =>{});
+
+    publisher.lrange('onlineUsers',0,-1, (err, reply)=>{
+      console.log("OnlineUsers List:", reply);
+    })
+
+    publisher.publish("logged-users","1");
   });
   
 

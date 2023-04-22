@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { useParams } from "react-router-dom";
-import {UserContext} from '../contexts/UserContext';
+import { UserContext } from '../contexts/UserContext';
 import { useNavigate } from "react-router-dom";
 import '../style.css'
 
@@ -8,8 +8,8 @@ import socketIOClient from "socket.io-client";
 const ENDPOINT = "http://localhost:8080";
 const frontPort = 8080;
 
-var socket = socketIOClient(ENDPOINT,{
-  transports: [ "websocket" ] 
+var socket = socketIOClient(ENDPOINT, {
+  transports: ["websocket", 'polling']
 })
 
 const Room = () => {
@@ -20,23 +20,25 @@ const Room = () => {
   const [latestMessage, setLatestMessage] = useState(null);
 
   const [newMessage, setNewMessage] = useState("");
-  
+  const messageContainerRef = useRef(null);
+
+
   const { roomName } = useParams();
   const { user, setUser } = useContext(UserContext);
-  
+
   const navigate = useNavigate();
 
 
   // when component mounts (loaded first time)
   useEffect(() => {
 
-    socket.on("message",  msg =>{
+    socket.on("message", msg => {
       const data = JSON.parse(msg);
       setLatestMessage(data);
     })
 
     // get the updated list of users for this room
-    socket.on('roomusers', msg =>{
+    socket.on('roomusers', msg => {
       let data = JSON.parse(msg);
 
       const uniquedata = data.filter((elem, pos) => {
@@ -52,10 +54,10 @@ const Room = () => {
 
     // Fetch messages in the room from MongoDB
     const fetchMessages = async () => {
-        const response = await fetch(`http://localhost:${frontPort}/api/rooms/${roomName}/messages`);
-        const data = await response.json();
+      const response = await fetch(`http://localhost:${frontPort}/api/rooms/${roomName}/messages`);
+      const data = await response.json();
 
-        setMessages(data.messages);
+      setMessages(data.messages);
 
     };
     fetchMessages();
@@ -68,7 +70,7 @@ const Room = () => {
       socket.emit("leave room", roomName, currentUserName);
     };
 
-  },[]);
+  }, []);
 
 
   useEffect(() => {
@@ -80,13 +82,20 @@ const Room = () => {
       console.log("Latest Message is NULL");
     }
   }, [latestMessage]);
-  
+
+
+  useEffect(() => {
+    // Scroll to the bottom when new messages are added
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
 
 
   const handleExit = () => {
     const currentUserName = JSON.parse(localStorage.getItem("user")).name;
     socket.emit("leave room", roomName, currentUserName);
-    
+
     // Redirect to dashboard
     navigate("/dashboard");
   };
@@ -116,82 +125,45 @@ const Room = () => {
 
   return (
     <div className="chat-box">
-  <div className="chat-header">
-    <h1>Room: {roomName}</h1>
-    <button onClick={handleExit} className="exit-button"> Exit </button>
-  </div>
-  <div className="chat-body">
-    <h2>Users:</h2>
-    <ul>
-      {users.map((user) => (
-        <li key={user}>{user}</li>
-      ))}
-    </ul> 
-
-    <h2>Messages:</h2>
-    
-    <div className="message-list">
-      {messages  && messages.map((message, index) => (
-        <div className="message" key={index}>
-        <p className="message-text">
-          <span className="sender-name">{message.senderName}: </span>
-          {message.message}
-        </p>
-        <p className="message-details">
-          {new Date(message.createdAt).toLocaleString()}
-        </p>
+      <div className="chat-header">
+        <h1>Room: {roomName}</h1>
+        <button onClick={handleExit} className="exit-button"> Exit </button>
       </div>
-      ))}
+      <div className="chat-body">
+        <h2>Users:</h2>
+        <ul>
+          {users.map((user) => (
+            <li key={user}>{user}</li>
+          ))}
+        </ul>
+
+        <h2>Messages:</h2>
+
+        <div className="message-list" ref={messageContainerRef}>
+          {messages && messages.map((message, index) => (
+            <div className="message" key={index}>
+              <p className="message-text">
+                <span className="sender-name">{message.senderName}: </span>
+                {message.message}
+              </p>
+              <p className="message-details">
+                {new Date(message.createdAt).toLocaleString()}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="chat-input">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(event) => setNewMessage(event.target.value)}
+            placeholder="Type your message here"
+          />
+          <button type="submit"> Send </button>
+        </form>
+      </div>
     </div>
-
-    <form onSubmit={handleSubmit} className="chat-input">
-      <input
-        type="text"
-        value={newMessage}
-        onChange={(event) => setNewMessage(event.target.value)}
-        placeholder="Type your message here"
-      />
-      <button type="submit"> Send </button>
-    </form>
-  </div>
-</div>
-
-
-    // <div>
-    //   <h1>Room: {roomName}</h1>
-    //   <h2>Users:</h2>
-    //   <ul>
-    //     {users.map((user) => (
-    //       <li key={user}>{user}</li>
-    //     ))}
-    //   </ul> 
-
-    //   <h2>Messages:</h2>
-      
-    //   <div className="message-list">
-    //     {messages  && messages.map((message, index) => (
-    //       <div className="message" key={index}>
-    //         <p className="message-text"> Message: {message.message}</p>
-    //         <p className="message-details">
-    //           <span> Sender: {message.senderName} </span> 
-    //           <span> Time: {new Date(message.createdAt).toLocaleString()} </span>
-    //         </p>
-    //       </div>
-    //     ))}
-    //   </div>
-
-    //   <form onSubmit={handleSubmit}>
-    //     <input
-    //       type="text"
-    //       value={newMessage}
-    //       onChange={(event) => setNewMessage(event.target.value)}
-    //     />
-    //     <button type="submit"> Send </button>
-    //   </form>
-
-
-    // <button onClick={handleExit}> Exit </button>
-    // </div>
   );
 };
 

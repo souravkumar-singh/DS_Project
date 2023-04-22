@@ -3,18 +3,22 @@ import { useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { UserContext } from '../contexts/UserContext';
 import { useNavigate } from "react-router-dom";
-import io from "socket.io-client";
-import '../style.css'
 
-const socket = io("http://localhost:8080");
+
+import socketIOClient from "socket.io-client";
+const ENDPOINT = "http://localhost:8080";
+const frontPort = 8080;
+
+var socket = socketIOClient(ENDPOINT,{
+  transports: [ "websocket", 'polling' ]
+})
 
 const DM = () => {
   const [users, setUsers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const { user, setUser } = useContext(UserContext);
-  const navigate = useNavigate();
-
+  
   const [newMessage, setNewMessage] = useState("");
   const messageRef = useRef(null);
 
@@ -43,7 +47,7 @@ const DM = () => {
   useEffect(() => {
     // Fetch users from MongoDB
     const fetchUsers = async () => {
-        const response = await fetch(`http://localhost:8080/api/users`);
+        const response = await fetch(`http://localhost:${frontPort}/api/users`);
         const data = await response.json();
         console.log(data)
         setUsers(data);
@@ -61,7 +65,7 @@ const DM = () => {
         console.log("Selected User:", selectedUser);
         console.log("Current User:", sender);
 
-        const response = await fetch(`http://localhost:8080/api/messages/${sender}/${selectedUser}`);
+        const response = await fetch(`http://localhost:${frontPort}/api/messages/${sender}/${selectedUser}`);
         const data = await response.json();
         console.log("Messages:", data);
         setMessages(data.messages);
@@ -75,7 +79,7 @@ const DM = () => {
         // Add the message to the MongoDB database
         console.log("Message is for selected user");
         
-        const response = await fetch(`http://localhost:8080/api/Msgdm`, {
+        const response = await fetch(`http://localhost:${frontPort}/api/Msgdm`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

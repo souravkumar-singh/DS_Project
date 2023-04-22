@@ -10,8 +10,9 @@ const ENDPOINT = "http://localhost:8080";
 const frontPort = 8080;
 
 var socket = socketIOClient(ENDPOINT,{
-  transports: [ "websocket" ] 
+  transports: [ "websocket", 'polling' ]
 })
+
 
 function Dashboard() {
   const { user, setUser } = useContext(UserContext);
@@ -64,7 +65,7 @@ function Dashboard() {
   const handleLogout = () => {
     // setUser(null);
     localStorage.removeItem("user");
-    socket.emit("logout",user);
+    socket.emit("logout", user.name);
     navigate('/signin');
   };
 
@@ -144,7 +145,7 @@ function Dashboard() {
           </ul>
         </div>
       </div>
-      // {/* {error && <div className="error">{error}</div>} */}
+        {/* {error && <div className="error">{error}</div>} */}
       </div>
   );
 }

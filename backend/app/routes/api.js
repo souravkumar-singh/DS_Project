@@ -226,36 +226,4 @@ router.post("/Msgdm", async (req, res) => {
 });
 
 
-// define socket connection
-// const io = require("socket.io")(server);
-// const Message = require("../models/Message");
-
-// // Socket.io code to listen to incoming connections
-// io.on("connection", (socket) => {
-//   console.log("New socket connection established: " + socket.id);
-
-//   // When a user sends a message
-//   socket.on("send_message", async ({ recipient, content, sender }) => {
-//     console.log(`New message received from ${sender.name} to ${recipient}: ${content}`);
-
-//     // Check if recipient is online
-//     const recipientSocket = io.sockets.connected[recipient.socketId];
-//     if (recipientSocket) {
-//       // If recipient is online, send the message directly to their socket
-//       recipientSocket.emit("receive_message", { sender, content });
-//     } else {
-//       // If recipient is offline, save the message to the database
-//       const message = new Message({
-//         senderId: sender._id,
-//         recipientId: recipient._id,
-//         content: content,
-//         timestamp: Date.now(),
-//       });
-//       await message.save();
-//       console.log("Recipient is offline. Message saved to database.");
-//     }
-//   });
-// });
-
-
 module.exports = router;

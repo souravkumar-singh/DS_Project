@@ -14,27 +14,17 @@ function App() {
    <Router>
     <UserProvider>
       <Routes>
-        <Route
-          exact
-          path="/signup"
-          element={<Signup />}
-        />
-        <Route
-          exact
-          path="/signin"
-          element={<Signin  />}
-        />
-        <Route
-          exact
-          path="/dashboard" 
-          element={<Dashboard />}
-        />
+        <Route exact path="/" element={<Home/>} />     
+        
+        <Route exact path="/signup" element={<Signup />} />
+        
+        <Route exact path="/signin" element={<Signin  />} />
+        
+        <Route exact path="/dashboard" element={<Dashboard />} />
 
-      <Route path="/" element={<Home/>} />        
-      <Route exact path="/room/:roomName" element={<Room />} />
-      
-      {/* <Route exact path="/dm" element={<DM/>} /> */}
+        <Route exact path="/room/:roomName" element={<Room />} />
 
+        <Route exact path="/dm" element={<DM/>} />
       </Routes>
       </UserProvider>
     </Router>

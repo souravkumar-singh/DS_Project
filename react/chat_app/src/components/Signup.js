@@ -2,7 +2,13 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import '../style.css'
 
+import socketIOClient from "socket.io-client";
+const ENDPOINT = "http://localhost:8080";
 const frontPort = 8080;
+
+var socket = socketIOClient(ENDPOINT,{
+  transports: [ "websocket", 'polling' ]
+})
 
 function Signup() {
   const [name, setName] = useState('');
@@ -27,6 +33,7 @@ function Signup() {
           throw new Error('Network response was not ok');
         }
         console.log('Data saved to database');
+        alert("New user created Successfully!!!");
         navigate('/signin'); 
       })
       .catch(error => {

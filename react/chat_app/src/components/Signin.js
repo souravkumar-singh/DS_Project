@@ -8,7 +8,7 @@ const ENDPOINT = "http://localhost:8080";
 const frontPort = 8080;
 
 var socket = socketIOClient(ENDPOINT,{
-  transports: [ "websocket" ] 
+  transports: [ "websocket", 'polling' ]
 })
 
 
