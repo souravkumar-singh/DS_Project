@@ -115,42 +115,47 @@ const Room = () => {
 
 
   return (
-    <div className="room-container">
-  <h1 className="room-title">Room: {roomName}</h1>
-  <h2>Users:</h2>
-  <ul className="user-list">
-    {users.map((user) => (
-      <li key={user}>{user}</li>
-    ))}
-  </ul> 
+    <div className="chat-box">
+  <div className="chat-header">
+    <h1>Room: {roomName}</h1>
+    <button onClick={handleExit} className="exit-button"> Exit </button>
+  </div>
+  <div className="chat-body">
+    <h2>Users:</h2>
+    <ul>
+      {users.map((user) => (
+        <li key={user}>{user}</li>
+      ))}
+    </ul> 
 
-  <h2>Messages:</h2>
-  
-  <div className="message-list">
-    {messages  && messages.map((message, index) => (
-      <div className="message" key={index}>
-        <p className="message-text"> Message: {message.message}</p>
+    <h2>Messages:</h2>
+    
+    <div className="message-list">
+      {messages  && messages.map((message, index) => (
+        <div className="message" key={index}>
+        <p className="message-text">
+          <span className="sender-name">{message.senderName}: </span>
+          {message.message}
+        </p>
         <p className="message-details">
-          <span> Sender: {message.senderName} </span> 
-          <span> Time: {new Date(message.createdAt).toLocaleString()} </span>
+          {new Date(message.createdAt).toLocaleString()}
         </p>
       </div>
-    ))}
+      ))}
+    </div>
+
+    <form onSubmit={handleSubmit} className="chat-input">
+      <input
+        type="text"
+        value={newMessage}
+        onChange={(event) => setNewMessage(event.target.value)}
+        placeholder="Type your message here"
+      />
+      <button type="submit"> Send </button>
+    </form>
   </div>
-
-  <form className="message-form" onSubmit={handleSubmit}>
-    <input
-      className="message-input"
-      type="text"
-      value={newMessage}
-      onChange={(event) => setNewMessage(event.target.value)}
-    />
-    <button className="message-submit" type="submit"> Send </button>
-  </form>
-
-
-  <button className="exit-button" onClick={handleExit}> Exit </button>
 </div>
+
 
     // <div>
     //   <h1>Room: {roomName}</h1>
