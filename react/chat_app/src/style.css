@@ -292,3 +292,88 @@ ul {
     background-color: #000;
     color: #fff;
   }
+
+  /* For room page */
+
+  .room-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+  
+  .room-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .user-list {
+    margin-bottom: 1rem;
+  }
+  
+  .user-list li {
+    margin: 0.5rem 0;
+    font-size: 1.2rem;
+  }
+  
+  .message-list {
+    margin-bottom: 1rem;
+  }
+  
+  .message {
+    border: 1px solid #ccc;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: #fff;
+  }
+  
+  .message-text {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .message-details {
+    font-size: 0.8rem;
+    color: #666;
+  }
+  
+  .message-details span {
+    margin-right: 0.5rem;
+  }
+  
+  .message-details span:first-child {
+    font-weight: bold;
+  }
+  
+  .message-form {
+    margin-top: 1rem;
+  }
+  
+  .message-input {
+    padding: 0.5rem;
+    font-size: 1.2rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+    margin-right: 0.5rem;
+  }
+  
+  .message-submit {
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+  
+  .exit-button {
+    padding: 0.5rem 1rem;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+  

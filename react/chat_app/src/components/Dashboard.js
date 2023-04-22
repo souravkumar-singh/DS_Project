@@ -5,60 +5,67 @@ import '../style.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUser, faUsers } from '@fortawesome/free-solid-svg-icons'
 
+import socketIOClient from "socket.io-client";
+const ENDPOINT = "http://localhost:8080";
+const frontPort = 8080;
+
+var socket = socketIOClient(ENDPOINT,{
+  transports: [ "websocket" ] 
+})
+
 function Dashboard() {
   const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
   
   const [loggedInUsers, setLoggedInUsers] = useState([]);
+  const [rooms, setRooms] = useState([]);
 
-  // list of currently logged in users
+  // list of currently logged in users and rooms
   useEffect(() => {
+    
     const fetchData = async () => {
-      const response = await fetch('http://localhost:8000/api/users');
+      const response = await fetch(`http://localhost:${frontPort}/api/users`);
       const data = await response.json();
       setLoggedInUsers(data);
     };
-
     fetchData();
-  }, []);
 
-  const [rooms, setRooms] = useState([]);
-
-  useEffect(() => {
     async function fetchRooms() {
-      const response = await fetch("http://localhost:8000/api/rooms");
+      const response = await fetch(`http://localhost:${frontPort}/api/rooms`);
       const data = await response.json();
       setRooms(data.rooms);
     }
     fetchRooms();
+
+    socket.on("logged-users", (msg) => {
+      console.log("list",msg);
+      
+      let data = JSON.parse(msg)
+      
+      const uniquedata = data.filter((elem, pos) => {
+        return data.indexOf(elem) == pos;})
+
+      setLoggedInUsers(uniquedata);
+    });
+    
+    socket.on('room', msg =>{
+      const data = JSON.parse(msg)
+      setRooms(data);
+    })
+
+    return () => {
+      socket.off("logged-users");
+      socket.off("room");
+    };
+
   }, []);
 
+  
   const handleLogout = () => {
     // setUser(null);
-    fetch('http://localhost:8000/api/logout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: user.name
-      })
-    })
-    .then(response => {
-      // handle response
-      if (response.ok){
-        localStorage.removeItem("user");
-        navigate('/signin');
-      }
-      else{
-        console.log("logged out failed! ");
-      }
-    })
-    .catch(error => {
-      // handle error
-      console.log("logged out failed! ");
-    });
-
+    localStorage.removeItem("user");
+    socket.emit("logout",user);
+    navigate('/signin');
   };
 
   const [name, setRoomName] = useState('');
@@ -68,7 +75,7 @@ function Dashboard() {
 
     console.log("React: ", user.name);
     try {
-      const response = await fetch(`http://localhost:8000/api/rooms/${name}`, {
+      const response = await fetch(`http://localhost:${frontPort}/api/rooms/${name}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -81,9 +88,7 @@ function Dashboard() {
       console.log("Received");
       
       // Do something with the response data
-      
       navigate(`/room/${name}`);
-
     } 
     
     catch (error) {

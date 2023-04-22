@@ -3,6 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import {UserContext} from '../contexts/UserContext';
 import '../style.css'
 
+import socketIOClient from "socket.io-client";
+const ENDPOINT = "http://localhost:8080";
+const frontPort = 8080;
+
+var socket = socketIOClient(ENDPOINT,{
+  transports: [ "websocket" ] 
+})
+
+
 function Signin() {
 
   const { updateCurrentUser } = useContext(UserContext);
@@ -15,13 +24,14 @@ function Signin() {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8000/api/login', {
+      const response = await fetch(`http://localhost:${frontPort}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ email, password })
       });
+
       if (response.ok) {
         // Login successful, do something here]
         console.log("Logged in successfully. Thanks for visiting your website. May you have a great day.");
@@ -35,12 +45,17 @@ function Signin() {
         const user = { name: name }; // Replace with actual user data
         updateCurrentUser(user);
         
+        socket.emit("loggingInUsers", name);
         navigate('/dashboard');
-      } else {
+      } 
+      
+      else {
         const errorData = await response.json();
         setError(errorData.error);
       }
-    } catch (error) {
+    } 
+    
+    catch (error) {
       console.error('Error logging in:', error);
       setError('Error logging in');
     }

@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
 import '../style.css'
 
-const socket = io("http://localhost:8000");
+const socket = io("http://localhost:8080");
 
 const DM = () => {
   const [users, setUsers] = useState([]);
@@ -43,7 +43,7 @@ const DM = () => {
   useEffect(() => {
     // Fetch users from MongoDB
     const fetchUsers = async () => {
-        const response = await fetch(`http://localhost:8000/api/users`);
+        const response = await fetch(`http://localhost:8080/api/users`);
         const data = await response.json();
         console.log(data)
         setUsers(data);
@@ -61,7 +61,7 @@ const DM = () => {
         console.log("Selected User:", selectedUser);
         console.log("Current User:", sender);
 
-        const response = await fetch(`http://localhost:8000/api/messages/${sender}/${selectedUser}`);
+        const response = await fetch(`http://localhost:8080/api/messages/${sender}/${selectedUser}`);
         const data = await response.json();
         console.log("Messages:", data);
         setMessages(data.messages);
@@ -75,7 +75,7 @@ const DM = () => {
         // Add the message to the MongoDB database
         console.log("Message is for selected user");
         
-        const response = await fetch(`http://localhost:8000/api/Msgdm`, {
+        const response = await fetch(`http://localhost:8080/api/Msgdm`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

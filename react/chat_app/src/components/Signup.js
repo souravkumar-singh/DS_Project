@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import '../style.css'
 
+const frontPort = 8080;
+
 function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -11,7 +13,7 @@ function Signup() {
 
   const handleSubmit =  (e) => {
     e.preventDefault();
-    fetch('http://localhost:8000/api/signup', {
+    fetch(`http://localhost:${frontPort}/api/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
